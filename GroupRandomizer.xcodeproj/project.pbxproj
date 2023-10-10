@@ -19,6 +19,7 @@
 		FDB107742AC72A64004AFA83 /* GroupRandomizerUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB107732AC72A64004AFA83 /* GroupRandomizerUITestsLaunchTests.swift */; };
 		FDB107842AC72B79004AFA83 /* StudentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB107832AC72B79004AFA83 /* StudentModel.swift */; };
 		FDB107862AC72F43004AFA83 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB107852AC72F43004AFA83 /* Storage.swift */; };
+		FDB852DF2AD5514000860ECD /* EventModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB852DE2AD5514000860ECD /* EventModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +56,7 @@
 		FDB107732AC72A64004AFA83 /* GroupRandomizerUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupRandomizerUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		FDB107832AC72B79004AFA83 /* StudentModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentModel.swift; sourceTree = "<group>"; };
 		FDB107852AC72F43004AFA83 /* Storage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Storage.swift; sourceTree = "<group>"; };
+		FDB852DE2AD5514000860ECD /* EventModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +142,7 @@
 			children = (
 				FDB107832AC72B79004AFA83 /* StudentModel.swift */,
 				FD167FF22ACD9AE5001834A6 /* GroupModel.swift */,
+				FDB852DE2AD5514000860ECD /* EventModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -279,6 +282,7 @@
 				FDB107512AC72A62004AFA83 /* AppDelegate.swift in Sources */,
 				FDB107842AC72B79004AFA83 /* StudentModel.swift in Sources */,
 				FDB107532AC72A62004AFA83 /* SceneDelegate.swift in Sources */,
+				FDB852DF2AD5514000860ECD /* EventModel.swift in Sources */,
 				FDB107862AC72F43004AFA83 /* Storage.swift in Sources */,
 				FD167FF32ACD9AE5001834A6 /* GroupModel.swift in Sources */,
 			);

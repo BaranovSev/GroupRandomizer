@@ -43,7 +43,8 @@ class ViewController: UIViewController {
         nameLabel.text = ""
         nameLabel.textColor = .blue
         nameLabel.backgroundColor = .cyan
-        nameLabel.isUserInteractionEnabled = false
+        nameLabel.isUserInteractionEnabled = true
+        nameLabel.isEditable = false
         nameLabel.font = .boldSystemFont(ofSize: 18)
         nameLabel.layer.cornerRadius = 15
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -226,7 +227,7 @@ class ViewController: UIViewController {
     }
     
     @objc private func didTapChooseRandomButton(_ sender: UIButton) {
-        if askTwiceSwitch.isOn {
+        if askTwiceSwitch.isOn && alreadyUsedIndexies.count == currentGroup.students.count {
             alreadyUsedIndexies = []
         }
         
@@ -244,9 +245,7 @@ class ViewController: UIViewController {
             showTag(name: happyStudent.name)
             chosenStudent.setTitle(happyStudent.name, for: .normal)
             
-            if !askTwiceSwitch.isOn {
                 alreadyUsedIndexies.append(index)
-            }
         }
     }
     
