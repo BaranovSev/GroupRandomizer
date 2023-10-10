@@ -7,30 +7,34 @@
 
 import UIKit
 
-var allGroups: [Group] = Storage.shared.getAllGroups()
-private var currentGroup: Group = allGroups[1]
-
 class ViewController: UIViewController {
     // MARK: - Properties
+    private var allGroups: [Group] = Storage.shared.getAllGroups()
+    private var currentGroup: Group?
     private var currentStudentIndex: Int?
     private var alreadyUsedIndexies: [Int] = []
     private var lastText: String?
+    private lazy var groupMenu = UIMenu(title: "All groups", children: groupMenuElements)
+    private lazy var groupMenuElements: [UIMenuElement] = []
+    
     // UI Elements
     private lazy var groupNameButton: UIButton = {
         let groupButton = UIButton()
         let label = UILabel()
-        groupButton.setTitle(currentGroup.groupName, for: .normal)
+        groupButton.setTitle("Chose group and set name for", for: .normal)
         groupButton.backgroundColor = .blue
         groupButton.setTitleColor(.cyan, for: .normal)
         groupButton.layer.cornerRadius = 15
+        groupButton.showsMenuAsPrimaryAction = true
+        groupButton.menu = groupMenu
         groupButton.translatesAutoresizingMaskIntoConstraints = false
         return groupButton
     }()
 
-    private lazy var presentStudentsButton: UIButton = {
+    private lazy var setupButton: UIButton = {
         let groupButton = UIButton()
         let label = UILabel()
-        groupButton.setTitle("15/30", for: .normal)
+        groupButton.setTitle("event", for: .normal)
         groupButton.backgroundColor = .purple
         groupButton.setTitleColor(.cyan, for: .normal)
         groupButton.layer.cornerRadius = 15
@@ -128,19 +132,15 @@ class ViewController: UIViewController {
     // MARK: - Lifecycles
     override func viewDidLoad() {
         super.viewDidLoad()
+        configureGroupMenuElements()
         addSubViews()
         applyConstraints()
-        
-        let sortedGroupsNames = sortItems(allGroups)
-        let sortedStudents = sortItems(currentGroup)
-        
-        showStudents(from: sortedStudents)
     }
     
     // MARK: - Private Methods
     private func addSubViews() {
         view.addSubview(groupNameButton)
-        view.addSubview(presentStudentsButton)
+        view.addSubview(setupButton)
         view.addSubview(switchDescription)
         view.addSubview(askTwiceSwitch)
         view.addSubview(groupTaskButton)
@@ -154,40 +154,40 @@ class ViewController: UIViewController {
         NSLayoutConstraint.activate([
             groupNameButton.heightAnchor.constraint(equalToConstant: 40),
             groupNameButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            groupNameButton.trailingAnchor.constraint(equalTo: presentStudentsButton.leadingAnchor , constant: -4),
+            groupNameButton.trailingAnchor.constraint(equalTo: setupButton.leadingAnchor , constant: -4),
             groupNameButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
 
-            presentStudentsButton.heightAnchor.constraint(equalToConstant: 40),
-            presentStudentsButton.leadingAnchor.constraint(equalTo: groupNameButton.trailingAnchor),
-            presentStudentsButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            presentStudentsButton.topAnchor.constraint(equalTo: groupNameButton.topAnchor),
-            presentStudentsButton.bottomAnchor.constraint(equalTo: groupNameButton.bottomAnchor),
+            setupButton.heightAnchor.constraint(equalToConstant: 40),
+            setupButton.leadingAnchor.constraint(equalTo: groupNameButton.trailingAnchor),
+            setupButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            setupButton.topAnchor.constraint(equalTo: groupNameButton.topAnchor),
+            setupButton.bottomAnchor.constraint(equalTo: groupNameButton.bottomAnchor),
             
             switchDescription.heightAnchor.constraint(equalToConstant: 20),
-            switchDescription.trailingAnchor.constraint(equalTo: presentStudentsButton.trailingAnchor),
-            switchDescription.leadingAnchor.constraint(equalTo: presentStudentsButton.leadingAnchor),
-            switchDescription.topAnchor.constraint(equalTo: presentStudentsButton.bottomAnchor, constant: 10),
+            switchDescription.trailingAnchor.constraint(equalTo: setupButton.trailingAnchor),
+            switchDescription.leadingAnchor.constraint(equalTo: setupButton.leadingAnchor),
+            switchDescription.topAnchor.constraint(equalTo: setupButton.bottomAnchor, constant: 10),
             
-            askTwiceSwitch.trailingAnchor.constraint(equalTo: presentStudentsButton.trailingAnchor),
-            askTwiceSwitch.leadingAnchor.constraint(equalTo: presentStudentsButton.leadingAnchor),
+            askTwiceSwitch.trailingAnchor.constraint(equalTo: setupButton.trailingAnchor),
+            askTwiceSwitch.leadingAnchor.constraint(equalTo: setupButton.leadingAnchor),
             askTwiceSwitch.topAnchor.constraint(equalTo: switchDescription.bottomAnchor, constant: 4),
             
             groupTaskButton.widthAnchor.constraint(equalToConstant: 70),
             groupTaskButton.heightAnchor.constraint(equalToConstant: 70),
-            groupTaskButton.trailingAnchor.constraint(equalTo: presentStudentsButton.trailingAnchor),
-            groupTaskButton.leadingAnchor.constraint(equalTo: presentStudentsButton.leadingAnchor),
+            groupTaskButton.trailingAnchor.constraint(equalTo: setupButton.trailingAnchor),
+            groupTaskButton.leadingAnchor.constraint(equalTo: setupButton.leadingAnchor),
             groupTaskButton.topAnchor.constraint(equalTo: askTwiceSwitch.bottomAnchor, constant: 20),
             
             restartButton.widthAnchor.constraint(equalToConstant: 70),
             restartButton.heightAnchor.constraint(equalToConstant: 70),
-            restartButton.trailingAnchor.constraint(equalTo: presentStudentsButton.trailingAnchor),
-            restartButton.leadingAnchor.constraint(equalTo: presentStudentsButton.leadingAnchor),
+            restartButton.trailingAnchor.constraint(equalTo: setupButton.trailingAnchor),
+            restartButton.leadingAnchor.constraint(equalTo: setupButton.leadingAnchor),
             restartButton.topAnchor.constraint(equalTo: groupTaskButton.bottomAnchor, constant: 4),
             
             studentInfoButton.widthAnchor.constraint(equalToConstant: 70),
             studentInfoButton.heightAnchor.constraint(equalToConstant: 70),
-            studentInfoButton.trailingAnchor.constraint(equalTo: presentStudentsButton.trailingAnchor),
-            studentInfoButton.leadingAnchor.constraint(equalTo: presentStudentsButton.leadingAnchor),
+            studentInfoButton.trailingAnchor.constraint(equalTo: setupButton.trailingAnchor),
+            studentInfoButton.leadingAnchor.constraint(equalTo: setupButton.leadingAnchor),
             studentInfoButton.bottomAnchor.constraint(equalTo: chosenStudent.topAnchor, constant: -4),
             
             chosenStudent.heightAnchor.constraint(equalToConstant: 50),
@@ -202,13 +202,8 @@ class ViewController: UIViewController {
         ])
     }
     
-    private func sortItems(_ allGroups: [Group]) -> [String] {
-        var names: [String] = []
-        for group in allGroups {
-            names.append(group.groupName)
-        }
-        
-        return names.sorted { $0 < $1 }
+    private func sortItems(_ allGroups: [Group]) -> [Group] {
+        return allGroups.sorted { $0.groupName < $1.groupName }
     }
     
     private func sortItems(_ currentGroup: Group) -> [Student] {
@@ -226,13 +221,40 @@ class ViewController: UIViewController {
         namesOfStudentsText.text = list
     }
     
+    private func configureGroupMenuElements() {
+        for group in sortItems(allGroups) {
+            let action = UIAction(title: group.groupName) { action in
+                self.currentGroup = group
+                self.currentStudentIndex = nil
+                self.alreadyUsedIndexies = []
+                self.chosenStudent.setTitle("Tap to chose random student", for: .normal)
+                self.groupNameButton.setTitle(group.groupName, for: .normal)
+                let sortedStudents = self.sortItems(group)
+                self.showStudents(from: sortedStudents)
+            }
+            
+            groupMenuElements.append(action)
+        }
+        
+        let finalAction = UIAction(title: "Add new group...") { action in
+        print("Create new group")
+        }
+        
+        groupMenuElements.append(finalAction)
+    }
+    
+    private func createNewGroup() {
+        print("Create new group...")
+    }
+    
     @objc private func didTapChooseRandomButton(_ sender: UIButton) {
+        guard let currentGroup = currentGroup else { return }
+
         if askTwiceSwitch.isOn && alreadyUsedIndexies.count == currentGroup.students.count {
             alreadyUsedIndexies = []
         }
         
         if currentGroup.students.count == alreadyUsedIndexies.count {
-            chosenStudent.isEnabled = false
             chosenStudent.setTitle("You've already interviewed all members", for: .normal)
             return
         } else {
@@ -244,8 +266,7 @@ class ViewController: UIViewController {
             
             showTag(name: happyStudent.name)
             chosenStudent.setTitle(happyStudent.name, for: .normal)
-            
-                alreadyUsedIndexies.append(index)
+            alreadyUsedIndexies.append(index)
         }
     }
     
@@ -258,31 +279,31 @@ class ViewController: UIViewController {
     }
     
     @objc private func showGroupTaskButton(_ sender: UIButton) {
-        lastText = namesOfStudentsText.text
-        namesOfStudentsText.isUserInteractionEnabled = true
-        studentInfoButton.isUserInteractionEnabled = false
-        restartButton.isUserInteractionEnabled = false
-        chosenStudent.isUserInteractionEnabled = false
-        if currentGroup.groupTask == nil {
-            namesOfStudentsText.text = "Enter tasks for this group:"
-        } else {
-            namesOfStudentsText.text = currentGroup.groupTask
+        if currentGroup != nil {
+            lastText = namesOfStudentsText.text
+            namesOfStudentsText.isEditable = true
+            makeButtonsInactive([studentInfoButton, restartButton, chosenStudent, groupNameButton, setupButton])
+            guard let currentGroup = currentGroup else { return }
+            if currentGroup.groupTask == nil {
+                namesOfStudentsText.text = "Enter tasks for this group:\n"
+            } else {
+                namesOfStudentsText.text = currentGroup.groupTask
+            }
+            
+            groupTaskButton.setImage(UIImage(systemName: "opticaldisc") ?? UIImage(), for: .normal)
+            groupTaskButton.removeTarget(self, action: #selector(Self.showGroupTaskButton), for: .touchUpInside)
+            groupTaskButton.addTarget(self, action: #selector(Self.saveGroupTask), for: .touchUpInside)
         }
-        groupTaskButton.setImage(UIImage(systemName: "opticaldisc") ?? UIImage(), for: .normal)
-        groupTaskButton.removeTarget(self, action: #selector(Self.showGroupTaskButton), for: .touchUpInside)
-        groupTaskButton.addTarget(self, action: #selector(Self.saveGroupTask), for: .touchUpInside)
     }
     
     @objc private func saveGroupTask(_ sender: UIButton) {
+        guard let currentGroup = currentGroup else { return }
         currentGroup.groupTask = namesOfStudentsText.text
-        namesOfStudentsText.isUserInteractionEnabled = false
-        studentInfoButton.isUserInteractionEnabled = true
-        restartButton.isUserInteractionEnabled = true
-        chosenStudent.isUserInteractionEnabled = true
+        namesOfStudentsText.isEditable = false
+        makeButtonsActive([studentInfoButton, restartButton, chosenStudent, groupNameButton, setupButton])
         groupTaskButton.setImage(UIImage(systemName: "book") ?? UIImage(), for: .normal)
         groupTaskButton.removeTarget(self, action: #selector(Self.saveGroupTask), for: .touchUpInside)
         groupTaskButton.addTarget(self, action: #selector(Self.showGroupTaskButton), for: .touchUpInside)
-
         namesOfStudentsText.text = lastText
     }
     
@@ -293,13 +314,12 @@ class ViewController: UIViewController {
     @objc private func showStudentInfo(_ sender: UIButton) {
         if  currentStudentIndex != nil {
             lastText = namesOfStudentsText.text
-            namesOfStudentsText.isUserInteractionEnabled = true
-            studentInfoButton.isUserInteractionEnabled = true
-            restartButton.isUserInteractionEnabled = false
-            groupTaskButton.isUserInteractionEnabled = false
-            chosenStudent.isUserInteractionEnabled = false
+            namesOfStudentsText.isEditable = true
+            makeButtonsActive([studentInfoButton])
+            makeButtonsInactive([restartButton, groupTaskButton, chosenStudent, groupNameButton, setupButton])
+            guard let currentGroup = currentGroup else { return }
             guard let currentStudentIndex = currentStudentIndex else { return }
-            namesOfStudentsText.text = currentGroup.students[currentStudentIndex].marks ?? currentGroup.students[currentStudentIndex].name + " info: "
+            namesOfStudentsText.text = currentGroup.students[currentStudentIndex].marks ?? currentGroup.students[currentStudentIndex].name + " info:\n"
             studentInfoButton.setImage(UIImage(systemName: "opticaldisc") ?? UIImage(), for: .normal)
             studentInfoButton.removeTarget(self, action: #selector(Self.showStudentInfo), for: .touchUpInside)
             studentInfoButton.addTarget(self, action: #selector(Self.saveStudentInfo), for: .touchUpInside)
@@ -308,12 +328,10 @@ class ViewController: UIViewController {
     
     @objc private func saveStudentInfo(_ sender: UIButton) {
         guard let currentStudentIndex = currentStudentIndex else { return }
+        guard let currentGroup = currentGroup else { return }
         currentGroup.students[currentStudentIndex].marks = namesOfStudentsText.text
-        namesOfStudentsText.isUserInteractionEnabled = false
-        studentInfoButton.isUserInteractionEnabled = true
-        restartButton.isUserInteractionEnabled = true
-        groupTaskButton.isUserInteractionEnabled = true
-        chosenStudent.isUserInteractionEnabled = true
+        namesOfStudentsText.isEditable = false
+        makeButtonsActive([studentInfoButton, restartButton, groupTaskButton, chosenStudent, groupNameButton, setupButton])
         namesOfStudentsText.text = lastText
         studentInfoButton.setImage(UIImage(systemName: "person") ?? UIImage(), for: .normal)
         studentInfoButton.removeTarget(self, action: #selector(Self.saveGroupTask), for: .touchUpInside)
@@ -322,9 +340,25 @@ class ViewController: UIViewController {
     
     @objc private func restartButtonTapped(_ sender: UIButton) {
         alreadyUsedIndexies = []
-        chosenStudent.isEnabled = true
-        chosenStudent.setTitle("Click to chose student", for: .normal)
+        currentStudentIndex = nil
+        chosenStudent.setTitle("Tap to chose random student", for: .normal)
+        guard let currentGroup = currentGroup else { return }
         showStudents(from: sortItems(currentGroup))
+    }
+}
+
+//MARK: - Helpers
+extension ViewController {
+    private func makeButtonsInactive(_ elements: [UIButton]) {
+        for element in elements {
+            element.isUserInteractionEnabled = false
+        }
+    }
+    
+    private func makeButtonsActive(_ elements: [UIButton]) {
+        for element in elements {
+            element.isUserInteractionEnabled = true
+        }
     }
 }
 

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Group: Codable {
+class Group: Codable {
     var groupName: String
     var groupTask: String?
     var students: [Student]
