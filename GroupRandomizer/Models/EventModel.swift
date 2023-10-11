@@ -12,9 +12,9 @@ class Event: Codable {
     var eventDate: Date
     var eventResult: String?
     
-    init(eventName: String? = "EmptyEventName", eventDate: Date, eventResult: String? = "") {
+    init(eventName: String? = "", eventDate: Date = Date(), eventResult: String? = "") {
         self.eventName = eventName
-        self.eventDate = Date()
+        self.eventDate = eventDate
         self.eventResult = eventResult
     }
 }

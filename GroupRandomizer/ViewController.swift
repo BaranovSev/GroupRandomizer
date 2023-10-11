@@ -11,16 +11,18 @@ class ViewController: UIViewController {
     // MARK: - Properties
     private var allGroups: [Group] = Storage.shared.getAllGroups()
     private var currentGroup: Group?
+    private var currentEvent: Event?
     private var currentStudentIndex: Int?
     private var alreadyUsedIndexies: [Int] = []
-    private var lastText: String?
+    private var header = "Set event name!\n\n"
     private lazy var groupMenu = UIMenu(title: "All groups", children: groupMenuElements)
     private lazy var groupMenuElements: [UIMenuElement] = []
+    private lazy var setupMenu = UIMenu(title: "Set up", children: setupMenuElements)
+    private lazy var setupMenuElements: [UIMenuElement] = []
     
     // UI Elements
     private lazy var groupNameButton: UIButton = {
         let groupButton = UIButton()
-        let label = UILabel()
         groupButton.setTitle("Chose group and set name for", for: .normal)
         groupButton.backgroundColor = .blue
         groupButton.setTitleColor(.cyan, for: .normal)
@@ -32,14 +34,15 @@ class ViewController: UIViewController {
     }()
 
     private lazy var setupButton: UIButton = {
-        let groupButton = UIButton()
-        let label = UILabel()
-        groupButton.setTitle("event", for: .normal)
-        groupButton.backgroundColor = .purple
-        groupButton.setTitleColor(.cyan, for: .normal)
-        groupButton.layer.cornerRadius = 15
-        groupButton.translatesAutoresizingMaskIntoConstraints = false
-        return groupButton
+        let setupButton = UIButton()
+        setupButton.setTitle("event", for: .normal)
+        setupButton.backgroundColor = .purple
+        setupButton.setTitleColor(.cyan, for: .normal)
+        setupButton.layer.cornerRadius = 15
+        setupButton.showsMenuAsPrimaryAction = true
+        setupButton.menu = setupMenu
+        setupButton.translatesAutoresizingMaskIntoConstraints = false
+        return setupButton
     }()
     
     private lazy var namesOfStudentsText: UITextView = {
@@ -103,6 +106,17 @@ class ViewController: UIViewController {
         return button
     }()
     
+    private lazy var saveButton: UIButton = {
+        let button = UIButton()
+        
+        button.setImage(UIImage(systemName: "checkmark") ?? UIImage(), for: .normal)
+        button.tintColor = .white
+        button.backgroundColor = .green
+        button.layer.cornerRadius = 15
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     private lazy var studentInfoButton: UIButton = {
         let button = UIButton.systemButton(
             with: UIImage(systemName: "person") ?? UIImage(),
@@ -133,6 +147,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureGroupMenuElements()
+        configureSetupMenuElements()
         addSubViews()
         applyConstraints()
     }
@@ -202,14 +217,6 @@ class ViewController: UIViewController {
         ])
     }
     
-    private func sortItems(_ allGroups: [Group]) -> [Group] {
-        return allGroups.sorted { $0.groupName < $1.groupName }
-    }
-    
-    private func sortItems(_ currentGroup: Group) -> [Student] {
-        return currentGroup.students.sorted { $0.name < $1.name }
-    }
-    
     private func showStudents(from sortedStudents: [Student]) {
         var count: Int = 1
         var list: String = ""
@@ -217,8 +224,8 @@ class ViewController: UIViewController {
             list += "\(count). \(student.name) \n"
             count += 1
         }
-        
-        namesOfStudentsText.text = list
+        currentEvent?.eventResult = list
+        namesOfStudentsText.text = header + list
     }
     
     private func configureGroupMenuElements() {
@@ -227,6 +234,8 @@ class ViewController: UIViewController {
                 self.currentGroup = group
                 self.currentStudentIndex = nil
                 self.alreadyUsedIndexies = []
+                self.header = "Set event name!\n\n"
+                self.currentEvent = Event()
                 self.chosenStudent.setTitle("Tap to chose random student", for: .normal)
                 self.groupNameButton.setTitle(group.groupName, for: .normal)
                 let sortedStudents = self.sortItems(group)
@@ -241,6 +250,62 @@ class ViewController: UIViewController {
         }
         
         groupMenuElements.append(finalAction)
+    }
+    
+    private func configureSetupMenuElements() {
+        let setupAction1 = UIAction(title: "Set event name") { action in
+            if let currentGroup = self.currentGroup {
+                self.namesOfStudentsText.text = "Enter event name:\n"
+                self.showSaveButton()
+                self.saveButton.addTarget(self, action: #selector(Self.saveEventName), for: .touchUpInside)
+            } else {
+                self.namesOfStudentsText.text = "Choose group at first!"
+            }
+        }
+
+        let setupAction2 = UIAction(title: "Redact current result") { action in
+            if let currentGroup = self.currentGroup,
+               let currentEvent = self.currentEvent {
+                self.namesOfStudentsText.text = currentEvent.eventResult
+                self.showSaveButton()
+                self.saveButton.addTarget(self, action: #selector(Self.redactCurrentResult), for: .touchUpInside)
+            } else {
+                self.namesOfStudentsText.text = "Choose group at first!"
+            }
+        }
+        
+        let setupAction3 = UIAction(title: "Tag epsent persons") { action in
+            if self.currentGroup != nil {
+                //TODO: handle
+            } else {
+                self.namesOfStudentsText.text = "Choose group at first!"
+            }
+        }
+        
+        let setupAction4 = UIAction(title: "Save current session") { action in
+            if let currentGroup = self.currentGroup,
+               let currentEvent = self.currentEvent {
+                if currentEvent.eventName != "empty event name" {
+                    currentGroup.events.append(currentEvent)
+                    Storage.shared.saveData(self.allGroups)
+                    self.namesOfStudentsText.text = "The result has been successfully saved, to continue select a group and create an event"
+                    self.currentGroup = nil
+                    self.currentEvent = nil
+                    self.currentStudentIndex = nil
+                    self.alreadyUsedIndexies = []
+                } else {
+                    self.namesOfStudentsText.text = "Rename your event"
+                    self.makeButtonsInactive([self.studentInfoButton, self.restartButton, self.groupTaskButton, self.chosenStudent, self.groupNameButton])
+                }
+            } else {
+                self.namesOfStudentsText.text = "Choose group and create an event at first!"
+            }
+        }
+        
+        setupMenuElements.append(setupAction1)
+        setupMenuElements.append(setupAction2)
+        setupMenuElements.append(setupAction3)
+        setupMenuElements.append(setupAction4)
     }
     
     private func createNewGroup() {
@@ -271,16 +336,59 @@ class ViewController: UIViewController {
     }
     
     private func showTag(name: String) {
-        var string = namesOfStudentsText.text
+        var string = currentEvent?.eventResult
         if let range = string?.range(of: name) {
             string?.insert(contentsOf: " ✅", at: range.upperBound)
-            namesOfStudentsText.text = string
         }
+        
+        currentEvent?.eventResult = string
+        namesOfStudentsText.text = header + (currentEvent?.eventResult ?? "empty event result or current event")
+    }
+    
+    @objc private func saveEventName() {
+        guard let string = namesOfStudentsText.text else {
+            return
+        }
+        
+        let subString: String? = string.components(separatedBy: "Enter event name:\n").last
+        guard let subString = subString else {
+            return
+        }
+        
+        var newEventName = ""
+        if subString.isEmpty {
+            newEventName = "empty event name"
+        } else {
+            newEventName = subString
+        }
+        
+        guard let currentEvent = currentEvent else { return }
+        header = "event: \(newEventName)\ndate: \(currentEvent.eventDate.dateTimeString)\n*  *  *  *  §  *  *  *  *\n"
+        currentEvent.eventName = newEventName
+        guard let currentResult = currentEvent.eventResult else {
+            namesOfStudentsText.text = header
+            return
+        }
+        
+        namesOfStudentsText.text = header + currentResult
+        saveButton.removeTarget(self, action: #selector(Self.saveEventName), for: .touchUpInside)
+        hideSaveButton()
+    }
+    
+    @objc private func redactCurrentResult() {
+        guard let string = namesOfStudentsText.text else {
+            return
+        }
+        
+        currentEvent?.eventResult = string
+        guard let currentResult = currentEvent?.eventResult else { return }
+        namesOfStudentsText.text = header + currentResult
+        saveButton.removeTarget(self, action: #selector(Self.redactCurrentResult), for: .touchUpInside)
+        hideSaveButton()
     }
     
     @objc private func showGroupTaskButton(_ sender: UIButton) {
         if currentGroup != nil {
-            lastText = namesOfStudentsText.text
             namesOfStudentsText.isEditable = true
             makeButtonsInactive([studentInfoButton, restartButton, chosenStudent, groupNameButton, setupButton])
             guard let currentGroup = currentGroup else { return }
@@ -304,16 +412,11 @@ class ViewController: UIViewController {
         groupTaskButton.setImage(UIImage(systemName: "book") ?? UIImage(), for: .normal)
         groupTaskButton.removeTarget(self, action: #selector(Self.saveGroupTask), for: .touchUpInside)
         groupTaskButton.addTarget(self, action: #selector(Self.showGroupTaskButton), for: .touchUpInside)
-        namesOfStudentsText.text = lastText
-    }
-    
-    @objc private func didTapChooseGroup(_ sender: UIButton) {
-        // show view with all grops names
+        namesOfStudentsText.text = header + (currentEvent?.eventResult ?? "")
     }
     
     @objc private func showStudentInfo(_ sender: UIButton) {
         if  currentStudentIndex != nil {
-            lastText = namesOfStudentsText.text
             namesOfStudentsText.isEditable = true
             makeButtonsActive([studentInfoButton])
             makeButtonsInactive([restartButton, groupTaskButton, chosenStudent, groupNameButton, setupButton])
@@ -332,7 +435,7 @@ class ViewController: UIViewController {
         currentGroup.students[currentStudentIndex].marks = namesOfStudentsText.text
         namesOfStudentsText.isEditable = false
         makeButtonsActive([studentInfoButton, restartButton, groupTaskButton, chosenStudent, groupNameButton, setupButton])
-        namesOfStudentsText.text = lastText
+        namesOfStudentsText.text = header + (currentEvent?.eventResult ?? "")
         studentInfoButton.setImage(UIImage(systemName: "person") ?? UIImage(), for: .normal)
         studentInfoButton.removeTarget(self, action: #selector(Self.saveGroupTask), for: .touchUpInside)
         studentInfoButton.addTarget(self, action: #selector(Self.showStudentInfo), for: .touchUpInside)
@@ -341,6 +444,8 @@ class ViewController: UIViewController {
     @objc private func restartButtonTapped(_ sender: UIButton) {
         alreadyUsedIndexies = []
         currentStudentIndex = nil
+        currentEvent = Event()
+        header = "Set event name!\n\n"
         chosenStudent.setTitle("Tap to chose random student", for: .normal)
         guard let currentGroup = currentGroup else { return }
         showStudents(from: sortItems(currentGroup))
@@ -359,6 +464,35 @@ extension ViewController {
         for element in elements {
             element.isUserInteractionEnabled = true
         }
+    }
+    
+    private func sortItems(_ allGroups: [Group]) -> [Group] {
+        return allGroups.sorted { $0.groupName < $1.groupName }
+    }
+    
+    private func sortItems(_ currentGroup: Group) -> [Student] {
+        return currentGroup.students.sorted { $0.name < $1.name }
+    }
+    
+    private func showSaveButton() {
+        view.addSubview(saveButton)
+        NSLayoutConstraint.activate([
+            saveButton.widthAnchor.constraint(equalToConstant: 70),
+            saveButton.heightAnchor.constraint(equalToConstant: 150),
+            saveButton.trailingAnchor.constraint(equalTo: setupButton.trailingAnchor),
+            saveButton.leadingAnchor.constraint(equalTo: setupButton.leadingAnchor),
+            saveButton.topAnchor.constraint(equalTo: restartButton.bottomAnchor, constant: 50)
+        ])
+        
+        namesOfStudentsText.isEditable = true
+        makeButtonsInactive([studentInfoButton, restartButton, groupTaskButton, chosenStudent, groupNameButton, setupButton])
+    }
+    
+    private func hideSaveButton() {
+        saveButton.removeFromSuperview()
+        
+        namesOfStudentsText.isEditable = false
+        makeButtonsActive([studentInfoButton, restartButton, groupTaskButton, chosenStudent, groupNameButton, setupButton])
     }
 }
 

@@ -20,6 +20,7 @@
 		FDB107842AC72B79004AFA83 /* StudentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB107832AC72B79004AFA83 /* StudentModel.swift */; };
 		FDB107862AC72F43004AFA83 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB107852AC72F43004AFA83 /* Storage.swift */; };
 		FDB852DF2AD5514000860ECD /* EventModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB852DE2AD5514000860ECD /* EventModel.swift */; };
+		FDB852E12AD6EF3600860ECD /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB852E02AD6EF3600860ECD /* Date+Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 		FDB107832AC72B79004AFA83 /* StudentModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentModel.swift; sourceTree = "<group>"; };
 		FDB107852AC72F43004AFA83 /* Storage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Storage.swift; sourceTree = "<group>"; };
 		FDB852DE2AD5514000860ECD /* EventModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventModel.swift; sourceTree = "<group>"; };
+		FDB852E02AD6EF3600860ECD /* Date+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +118,7 @@
 				FDB107592AC72A64004AFA83 /* Assets.xcassets */,
 				FDB1075B2AC72A64004AFA83 /* LaunchScreen.storyboard */,
 				FDB1075E2AC72A64004AFA83 /* Info.plist */,
+				FDB852E02AD6EF3600860ECD /* Date+Extensions.swift */,
 			);
 			path = GroupRandomizer;
 			sourceTree = "<group>";
@@ -279,6 +282,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FDB107552AC72A62004AFA83 /* ViewController.swift in Sources */,
+				FDB852E12AD6EF3600860ECD /* Date+Extensions.swift in Sources */,
 				FDB107512AC72A62004AFA83 /* AppDelegate.swift in Sources */,
 				FDB107842AC72B79004AFA83 /* StudentModel.swift in Sources */,
 				FDB107532AC72A62004AFA83 /* SceneDelegate.swift in Sources */,

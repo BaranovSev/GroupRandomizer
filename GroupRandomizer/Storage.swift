@@ -15,7 +15,7 @@ final class Storage {
     private enum Keys: String {
         case allGroups
     }
-    var allGroups: [Group]? {
+    private var allGroups: [Group]? {
         get {
             guard let data = userDefaults.data(forKey: Keys.allGroups.rawValue),
                   let record = try? JSONDecoder().decode([Group]?.self, from: data) else {
@@ -57,6 +57,10 @@ final class Storage {
     
     func getAllGroups() -> [Group] {
         return allGroups ?? []
+    }
+    
+    func saveData(_ data: [Group]?) {
+        self.allGroups = data
     }
 }
 
