@@ -14,6 +14,7 @@ class ViewController: UIViewController {
     private var currentEvent: Event?
     private var currentStudentIndex: Int?
     private var alreadyUsedIndexies: [Int] = []
+    private var resultToShare = ""
     private var header = "Set event name!\n\n"
     private lazy var groupMenu = UIMenu(title: "All groups", children: groupMenuElements)
     private lazy var groupMenuElements: [UIMenuElement] = []
@@ -321,21 +322,30 @@ class ViewController: UIViewController {
             }
         }
         
-        let setupAction3 = UIAction(title: "Tag epsent persons") { action in
-            if self.currentGroup != nil {
-                //TODO: handle
-            } else {
-                self.namesOfStudentsText.text = "Choose group at first!"
-            }
-        }
-        
-        let setupAction4 = UIAction(title: "Save current session") { action in
+        let setupAction3 = UIAction(title: "Save current session") { action in
             if let currentGroup = self.currentGroup,
                let currentEvent = self.currentEvent {
                 if currentEvent.eventName != "empty event name" {
+                    guard let eventName = currentEvent.eventName else { return }
                     currentGroup.events.append(currentEvent)
                     Storage.shared.saveData(self.allGroups)
-                    self.namesOfStudentsText.text = "The result has been successfully saved, to continue select a group and create an event"
+                    
+                    self.resultToShare = "Group name: " + currentGroup.groupName +
+                    "\nEvent name: " + eventName +
+                    "\nEvent date: " + (currentEvent.eventDate.dateTimeString) +
+                    "\n*  *  *  *  §  *  *  *  *\n" +
+                    (self.currentEvent?.eventResult ?? "Empty event results")
+                    
+                    print(self.resultToShare)
+                    self.shareAction()
+                    self.namesOfStudentsText.text = """
+The result has been
+successfully saved.
+To continue
+select a group
+and create an event.
+Also you can share this result.
+"""
                     self.currentGroup = nil
                     self.currentEvent = nil
                     self.currentStudentIndex = nil
@@ -352,7 +362,6 @@ class ViewController: UIViewController {
         setupMenuElements.append(setupAction1)
         setupMenuElements.append(setupAction2)
         setupMenuElements.append(setupAction3)
-        setupMenuElements.append(setupAction4)
     }
     
     @objc private func createNewGroup() {
@@ -401,7 +410,6 @@ class ViewController: UIViewController {
             crossButton.removeTarget(self, action: #selector(Self.dismissSavingChanges), for: .touchUpInside)
             hideSaveButton()
             hideCrossButton()
-            //TODO: добавить в GroupName группу. перерисовать namesText
         } else {
             let message = "The group name and students names must be unique, cannot be blank or consist entirely of spaces.\n The group must consist of at least one member."
             AlertPresenter(onViewController: self).showAlert(message: message)
@@ -479,7 +487,6 @@ class ViewController: UIViewController {
         hideSaveButton()
         hideCrossButton()
         restartGame()
-        //TODO: убрать из GroupName удаленные группы. перерисовать namesText
     }
     
     @objc private func dismissSavingChanges() {
@@ -621,6 +628,15 @@ class ViewController: UIViewController {
     
     @objc private func restartButtonTapped(_ sender: UIButton) {
         restartGame()
+    }
+    
+    private func shareAction() {
+        let share = UIActivityViewController(
+            activityItems: [resultToShare],
+            applicationActivities: nil
+        )
+        share.overrideUserInterfaceStyle = .dark
+        present(share, animated: true, completion: nil)
     }
     
     private func restartGame() {
