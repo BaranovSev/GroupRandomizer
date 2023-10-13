@@ -17,7 +17,7 @@ class ViewController: UIViewController {
     private var header = "Set event name!\n\n"
     private lazy var groupMenu = UIMenu(title: "All groups", children: groupMenuElements)
     private lazy var groupMenuElements: [UIMenuElement] = []
-    private lazy var setupMenu = UIMenu(title: "Set up", children: setupMenuElements)
+    private lazy var setupMenu = UIMenu(title: "Setup", children: setupMenuElements)
     private lazy var setupMenuElements: [UIMenuElement] = []
     
     // UI Elements
@@ -112,6 +112,17 @@ class ViewController: UIViewController {
         button.setImage(UIImage(systemName: "checkmark") ?? UIImage(), for: .normal)
         button.tintColor = .white
         button.backgroundColor = .green
+        button.layer.cornerRadius = 15
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    private lazy var crossButton: UIButton = {
+        let button = UIButton()
+        
+        button.setImage(UIImage(systemName: "multiply") ?? UIImage(), for: .normal)
+        button.tintColor = .white
+        button.backgroundColor = .red
         button.layer.cornerRadius = 15
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -245,11 +256,47 @@ class ViewController: UIViewController {
             groupMenuElements.append(action)
         }
         
-        let finalAction = UIAction(title: "Add new group...") { action in
+        let createAction = UIAction(title: "Add new group...") { action in
         print("Create new group")
+            self.namesOfStudentsText.text = "Enter name of new group:\n>\nEnter members:\n"
+            self.showSaveButton()
+            self.showCrossButton()
+            self.saveButton.addTarget(self, action: #selector(Self.createNewGroup), for: .touchUpInside)
+            self.crossButton.addTarget(self, action: #selector(Self.dismissSavingChanges), for: .touchUpInside)
         }
         
-        groupMenuElements.append(finalAction)
+        let redactAction = UIAction(title: "Edit this group") { action in
+        print("Edit this group")
+            if let currentGroup = self.currentGroup {
+                
+                self.namesOfStudentsText.text = "Enter new name of this group:\n>\nNew band lineup:\n"
+                for student in currentGroup.students {
+                    self.namesOfStudentsText.text += student.name + "\n"
+                }
+                self.showSaveButton()
+                self.showCrossButton()
+                self.saveButton.addTarget(self, action: #selector(Self.editGroup), for: .touchUpInside)
+                self.crossButton.addTarget(self, action: #selector(Self.dismissSavingChanges), for: .touchUpInside)
+            } else {
+                self.namesOfStudentsText.text = "select the group you want to edit"
+            }
+        }
+        
+        let deleteAction = UIAction(title: "Delete this group") { action in
+            if self.currentGroup != nil {
+                self.namesOfStudentsText.text = "Do you really want delete this group?"
+                self.showSaveButton()
+                self.showCrossButton()
+                self.saveButton.addTarget(self, action: #selector(Self.deleteGroup), for: .touchUpInside)
+                self.crossButton.addTarget(self, action: #selector(Self.dismissSavingChanges), for: .touchUpInside)
+            } else {
+                self.namesOfStudentsText.text = "select the group you want to delete"
+            }
+        }
+        
+        groupMenuElements.append(createAction)
+        groupMenuElements.append(redactAction)
+        groupMenuElements.append(deleteAction)
     }
     
     private func configureSetupMenuElements() {
@@ -308,8 +355,139 @@ class ViewController: UIViewController {
         setupMenuElements.append(setupAction4)
     }
     
-    private func createNewGroup() {
-        print("Create new group...")
+    @objc private func createNewGroup() {
+        let text = namesOfStudentsText.text
+        guard let text = text else { return }
+        let textOfGroupName = text.components(separatedBy: ">").last?.components(separatedBy: "\n").first
+        guard let textOfGroupName = textOfGroupName else { return }
+        var groupName = ""
+        if !textOfGroupName.isEmpty {
+            groupName = textOfGroupName
+        }
+        
+        let textOfStudentsNames = text.components(separatedBy: "Enter members:\n").last
+        guard let textOfStudentsNames = textOfStudentsNames else { return }
+        
+        let studentNamesArray = textOfStudentsNames.components(separatedBy: "\n").sorted { $0 < $1 }
+        var studentsArray: [Student] = []
+        var groupsNamesArray: [String] = []
+        
+        for group in allGroups {
+            groupsNamesArray.append(group.groupName)
+        }
+        
+        let groupNameIsUnique = !groupsNamesArray.contains(groupName)
+        let allMembersNamesIsUnique = studentNamesArray.count == Set(studentNamesArray).count
+        
+        for row in studentNamesArray {
+            if !row.isEmpty && row.trimmingCharacters(in: .whitespaces) != "" {
+                studentsArray.append(Student(name: row))
+            }
+        }
+        
+        if !groupName.isEmpty &&
+            groupName.trimmingCharacters(in: .whitespaces) != "" &&
+            !studentsArray.isEmpty &&
+            groupNameIsUnique &&
+            allMembersNamesIsUnique {
+            let newGroup = Group(groupName: groupName, students: studentsArray)
+            
+            allGroups.append(newGroup)
+            Storage.shared.saveData(allGroups)
+            
+            currentGroup = newGroup
+            restartGame()
+            saveButton.removeTarget(self, action: #selector(Self.createNewGroup), for: .touchUpInside)
+            crossButton.removeTarget(self, action: #selector(Self.dismissSavingChanges), for: .touchUpInside)
+            hideSaveButton()
+            hideCrossButton()
+            //TODO: добавить в GroupName группу. перерисовать namesText
+        } else {
+            let message = "The group name and students names must be unique, cannot be blank or consist entirely of spaces.\n The group must consist of at least one member."
+            AlertPresenter(onViewController: self).showAlert(message: message)
+        }
+    }
+    
+    @objc private func editGroup() {
+        guard let currentGroup = currentGroup else { return }
+        let text = namesOfStudentsText.text
+        guard let text = text else { return }
+        let textOfGroupName = text.components(separatedBy: ">").last?.components(separatedBy: "\n").first
+        guard let textOfGroupName = textOfGroupName else { return }
+        var newGroupName = currentGroup.groupName
+        if !textOfGroupName.isEmpty && textOfGroupName.trimmingCharacters(in: .whitespaces) != "" {
+            newGroupName = textOfGroupName
+        }
+        
+        let textOfStudentsNames = text.components(separatedBy: "New band lineup:\n").last
+        guard let textOfStudentsNames = textOfStudentsNames else { return }
+        
+        let newStudentNamesArray = textOfStudentsNames.components(separatedBy: "\n").sorted { $0 < $1 }
+        let allStudentNamesIsUnique = newStudentNamesArray.count == Set(newStudentNamesArray).count
+        var addedStudentsArray: [Student] = []
+        var oldStudentNames: [String] = []
+        
+        if !newStudentNamesArray.isEmpty && allStudentNamesIsUnique {
+            for student in currentGroup.students {
+                oldStudentNames.append(student.name)
+            }
+            
+            let difference = newStudentNamesArray.difference(from: oldStudentNames)
+            for change in difference {
+                switch change {
+                case let .remove(_, oldElement, _):
+                    currentGroup.students.removeAll(where: {$0.name == oldElement})
+                case let .insert(_, newElement, _):
+                    if newElement.trimmingCharacters(in: .whitespaces) != "" {
+                        addedStudentsArray.append(Student(name: newElement))
+                    }
+                }
+            }
+            
+            currentGroup.students.append(contentsOf: addedStudentsArray)
+            if !currentGroup.students.isEmpty {
+                allGroups.removeAll(where: {$0.groupName == currentGroup.groupName})
+                currentGroup.groupName = newGroupName
+                allGroups.append(currentGroup)
+                Storage.shared.saveData(allGroups)
+            } else {
+                let message = "the group must consist of at least one member."
+                AlertPresenter(onViewController: self).showAlert(message: message)
+            }
+            
+        } else {
+            let message = "Students names must be unique, cannot be blank or consist entirely of spaces."
+            AlertPresenter(onViewController: self).showAlert(message: message)
+        }
+
+        saveButton.removeTarget(self, action: #selector(Self.editGroup), for: .touchUpInside)
+        crossButton.removeTarget(self, action: #selector(Self.dismissSavingChanges), for: .touchUpInside)
+        hideSaveButton()
+        hideCrossButton()
+        restartGame()
+    }
+    
+    @objc private func deleteGroup() {
+        guard let currentGroup = currentGroup else { return }
+        allGroups.removeAll(where: {$0.groupName == currentGroup.groupName})
+        
+        Storage.shared.saveData(allGroups)
+        
+        self.currentGroup = nil
+        saveButton.removeTarget(self, action: #selector(Self.deleteGroup), for: .touchUpInside)
+        crossButton.removeTarget(self, action: #selector(Self.dismissSavingChanges), for: .touchUpInside)
+        hideSaveButton()
+        hideCrossButton()
+        restartGame()
+        //TODO: убрать из GroupName удаленные группы. перерисовать namesText
+    }
+    
+    @objc private func dismissSavingChanges() {
+        restartGame()
+        saveButton.removeTarget(self, action: #selector(Self.createNewGroup), for: .touchUpInside)
+        crossButton.removeTarget(self, action: #selector(Self.dismissSavingChanges), for: .touchUpInside)
+        hideSaveButton()
+        hideCrossButton()
     }
     
     @objc private func didTapChooseRandomButton(_ sender: UIButton) {
@@ -442,12 +620,21 @@ class ViewController: UIViewController {
     }
     
     @objc private func restartButtonTapped(_ sender: UIButton) {
+        restartGame()
+    }
+    
+    private func restartGame() {
         alreadyUsedIndexies = []
         currentStudentIndex = nil
         currentEvent = Event()
         header = "Set event name!\n\n"
         chosenStudent.setTitle("Tap to chose random student", for: .normal)
-        guard let currentGroup = currentGroup else { return }
+        guard let currentGroup = currentGroup else {
+            namesOfStudentsText.text = ""
+            groupNameButton.setTitle("Chose group and set name for", for: .normal)
+            return
+        }
+        groupNameButton.setTitle(currentGroup.groupName, for: .normal)
         showStudents(from: sortItems(currentGroup))
     }
 }
@@ -488,7 +675,26 @@ extension ViewController {
         makeButtonsInactive([studentInfoButton, restartButton, groupTaskButton, chosenStudent, groupNameButton, setupButton])
     }
     
+    private func showCrossButton() {
+        view.addSubview(crossButton)
+        NSLayoutConstraint.activate([
+            crossButton.widthAnchor.constraint(equalToConstant: 70),
+            crossButton.heightAnchor.constraint(equalToConstant: 70),
+            crossButton.trailingAnchor.constraint(equalTo: setupButton.trailingAnchor),
+            crossButton.leadingAnchor.constraint(equalTo: setupButton.leadingAnchor),
+            crossButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 30)
+        ])
+    }
+    
     private func hideSaveButton() {
+        saveButton.removeFromSuperview()
+        
+        namesOfStudentsText.isEditable = false
+        makeButtonsActive([studentInfoButton, restartButton, groupTaskButton, chosenStudent, groupNameButton, setupButton])
+    }
+    
+    private func hideCrossButton() {
+        crossButton.removeFromSuperview()
         saveButton.removeFromSuperview()
         
         namesOfStudentsText.isEditable = false

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		FD167FF32ACD9AE5001834A6 /* GroupModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD167FF22ACD9AE5001834A6 /* GroupModel.swift */; };
+		FDAC033C2AD82FB400F1903A /* AlertPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDAC033B2AD82FB400F1903A /* AlertPresenter.swift */; };
 		FDB107512AC72A62004AFA83 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB107502AC72A62004AFA83 /* AppDelegate.swift */; };
 		FDB107532AC72A62004AFA83 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB107522AC72A62004AFA83 /* SceneDelegate.swift */; };
 		FDB107552AC72A62004AFA83 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB107542AC72A62004AFA83 /* ViewController.swift */; };
@@ -42,6 +43,7 @@
 
 /* Begin PBXFileReference section */
 		FD167FF22ACD9AE5001834A6 /* GroupModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupModel.swift; sourceTree = "<group>"; };
+		FDAC033B2AD82FB400F1903A /* AlertPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertPresenter.swift; sourceTree = "<group>"; };
 		FDB1074D2AC72A62004AFA83 /* GroupRandomizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GroupRandomizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FDB107502AC72A62004AFA83 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FDB107522AC72A62004AFA83 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -113,6 +115,7 @@
 				FDB107522AC72A62004AFA83 /* SceneDelegate.swift */,
 				FDB107542AC72A62004AFA83 /* ViewController.swift */,
 				FDB107852AC72F43004AFA83 /* Storage.swift */,
+				FDAC033B2AD82FB400F1903A /* AlertPresenter.swift */,
 				FDB107802AC72AE1004AFA83 /* Models */,
 				FDB107562AC72A62004AFA83 /* Main.storyboard */,
 				FDB107592AC72A64004AFA83 /* Assets.xcassets */,
@@ -286,6 +289,7 @@
 				FDB107512AC72A62004AFA83 /* AppDelegate.swift in Sources */,
 				FDB107842AC72B79004AFA83 /* StudentModel.swift in Sources */,
 				FDB107532AC72A62004AFA83 /* SceneDelegate.swift in Sources */,
+				FDAC033C2AD82FB400F1903A /* AlertPresenter.swift in Sources */,
 				FDB852DF2AD5514000860ECD /* EventModel.swift in Sources */,
 				FDB107862AC72F43004AFA83 /* Storage.swift in Sources */,
 				FD167FF32ACD9AE5001834A6 /* GroupModel.swift in Sources */,
